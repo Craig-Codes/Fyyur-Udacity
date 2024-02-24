@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, IntegerField
+from wtforms.validators import DataRequired, AnyOf, URL, Regexp, Length
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -82,9 +82,12 @@ class VenueForm(Form):
     address = StringField(
         'address', validators=[DataRequired()]
     )
+        # TODO implement validation logic for phone 
     phone = StringField(
-        'phone'
+        'phone',
+        validators=[DataRequired(), Regexp(r'^[0-9\-\+]+$')]
     )
+        # more can be done using additional methods such as IntegerField, or importing PhoneNumberField using the WTForms-Alchemy package. Additionally upgrading the WTForms pckage offers many more validators
     image_link = StringField(
         'image_link'
     )
@@ -117,7 +120,7 @@ class VenueForm(Form):
         'facebook_link', validators=[URL()]
     )
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[URL()]
     )
 
     seeking_talent = BooleanField( 'seeking_talent' )
@@ -191,12 +194,14 @@ class ArtistForm(Form):
             ('WY', 'WY'),
         ]
     )
-    phone = StringField(
         # TODO implement validation logic for phone 
-        'phone'
+    phone = StringField(
+        'phone',
+        # only allow -/+/numbers
+        validators=[DataRequired(), Regexp(r'^[0-9\-\+]+$')]
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[URL()]
     )
     genres = SelectMultipleField(
         'genres', validators=[DataRequired()],
@@ -228,7 +233,7 @@ class ArtistForm(Form):
      )
 
     website_link = StringField(
-        'website_link'
+        'website_link', validators=[URL()]
      )
 
     seeking_venue = BooleanField( 'seeking_venue' )
