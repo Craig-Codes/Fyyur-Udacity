@@ -207,6 +207,20 @@ def search_artists():
 def show_artist(artist_id):
   artist = Artist.query.filter_by(id=artist_id).first()
   artist.genres=artist.genres.replace('{', '').replace('}','').split(",")
+
+  shows = artist.shows
+  
+  upcoming_shows = 0
+  past_shows = 0
+
+  for show in shows:
+     if show.start_time.timestamp() > datetime.now().timestamp(): # use timestamp to correctly compare
+        upcoming_shows += 1
+     else:
+        past_shows += 1
+
+  artist.upcoming_shows_count = upcoming_shows
+  artist.past_shows_count = past_shows
   
   if artist is None:
     return abort(404)
