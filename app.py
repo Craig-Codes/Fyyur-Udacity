@@ -2,6 +2,7 @@
 # Imports
 #----------------------------------------------------------------------------#
 
+import errno
 import json
 import os
 import dateutil.parser
@@ -125,45 +126,26 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   try:
-      name = request.form['name']
-      city = request.form['city']
-      state = request.form['state']
-      address = request.form['address']
-      phone = request.form['phone']
-      genres = request.form.getlist('genres')
-      facebook_link = request.form['facebook_link']
-      image_link = request.form['image_link']
-      website_link = request.form['website_link']
-      seeking_description = request.form['seeking_description']
-
-      # If seeking talent not selected in the form, it wont show up in the request.form
-      seeking_talent=''
-      try:
-        seeking_talent = request.form['seeking_talent']
-        seeking_talent = True
-      except:
-        seeking_talent = False
-
-      venue = Venue(name=name, 
-                    city=city, 
-                    state=state, 
-                    phone=phone, 
-                    address=address,
-                    genres=genres, 
-                    facebook_link=facebook_link, 
-                    image_link=image_link, 
-                    website_link=website_link, 
-                    seeking_talent=seeking_talent, 
-                    seeking_description=seeking_description)
+      form = VenueForm(request.form)
+      venue = Venue(
+        name=form.name.data,
+        city=form.city.data,
+        state=form.state.data,
+        address=form.address.data,
+        phone=form.phone.data,
+        genres=form.genres.data,
+        facebook_link=form.facebook_link.data,
+        image_link=form.image_link.data
+      )
+      
       db.session.add(venue)
       db.session.commit()
-      flash('Venue ' + name + ' was successfully listed!')
+      flash('Venue: {0} created successfully'.format(venue.name))
       return redirect(url_for('show_venue', venue_id=venue.id))
-  except:
-      db.session.rollback()
-      flash('An error occurred. Venue ' + name + ' could not be listed.')
-      print(sys.exc_info())
-      return redirect(url_for('index'))
+  except Exception as err:
+    flash('An error occurred creating the Venue: {0}. Error: {1}'.format(venue.name, err))
+    db.session.rollback()
+    return redirect(url_for('index'))
   finally:
       db.session.close()
 
@@ -300,41 +282,26 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   try:
-    name = request.form['name']
-    city = request.form['city']
-    state = request.form['state']
-    phone = request.form['phone']
-    genres = request.form.getlist('genres')
-    facebook_link = request.form['facebook_link']
-    image_link = request.form['image_link']
-    website_link = request.form['website_link']
-    seeking_description = request.form['seeking_description']
-
-    # If seeking venue not selected in the form, it wont show up in the request.form
-    seeking_venue =''
-    try:
-      seeking_venue = request.form['seeking_venue']
-      seeking_venue = True
-    except:
-      seeking_venue = False
-
-    artist = Artist(name=name, 
-                    city=city, 
-                    state=state, 
-                    phone=phone, 
-                    genres=genres, 
-                    facebook_link=facebook_link, 
-                    image_link=image_link, 
-                    website_link=website_link, 
-                    seeking_venue=seeking_venue, 
-                    seeking_description=seeking_description)
+    form = ArtistForm(request.form)
+    artist = Artist(
+        name=form.name.data,
+        city=form.city.data,
+        state=form.state.data,
+        phone=form.phone.data,
+        genres=form.genres.data,
+        facebook_link=form.facebook_link.data,
+        image_link=form.image_link.data,
+        website_link = form.website_link.data,
+        seeking_description = form.seeking_description.data
+      )
+    
     db.session.add(artist)
     db.session.commit()
-    flash('Artist ' + name + ' was successfully listed!')
+    flash('Artist: {0} created successfully'.format(artist.name))
     return redirect(url_for('show_artist', artist_id=artist.id))
   except:
     db.session.rollback()
-    flash('An error occurred. Artist ' + name + ' could not be listed.')
+    flash('An error occurred creating the Artist: {0}. Error: {1}'.format(artist.name, errno))
     return redirect(url_for('index'))
   finally:
     db.session.close()
