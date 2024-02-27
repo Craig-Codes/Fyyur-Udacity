@@ -99,7 +99,9 @@ def show_venue(venue_id):
   # genres is a string, so it needs the brackets removed, then turned into a comma seperated list
   venue.genres=venue.genres.replace('{', '').replace('}','').split(",")
   # get venue upcoming show count
-  shows = venue.shows
+
+   # Inner Join Shows and Venues, filtering for only our queried venue
+  shows = db.session.query(Show).select_from(Venue).join(Show, Show.venue_id == Venue.id).filter(Show.venue_id == venue_id).all()
   
   upcoming_shows = 0
   past_shows = 0
@@ -190,7 +192,8 @@ def show_artist(artist_id):
   artist = Artist.query.filter_by(id=artist_id).first()
   artist.genres=artist.genres.replace('{', '').replace('}','').split(",")
 
-  shows = artist.shows
+  # Inner Join Shows and Artists, filtering for only our queried artist
+  shows = db.session.query(Show).select_from(Artist).join(Show, Show.artist_id == Artist.id).filter(Show.artist_id == artist_id).all()
   
   upcoming_shows = 0
   past_shows = 0
@@ -219,23 +222,18 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
+    form = ArtistForm(request.form)
     artist = Artist.query.filter_by(id=artist_id).first()
-    artist.name = request.form['name']
-    artist.city = request.form['city']
-    artist.state = request.form['state']
-    artist.phone = request.form['phone']
-    artist.genres = request.form.getlist('genres')
-    artist.facebook_link = request.form['facebook_link']
-    artist.image_link = request.form['image_link']
-    artist.website_link = request.form['website_link']
-    artist.seeking_description = request.form['seeking_description']
-
-    # If seeking venue not selected in the form, it wont show up in the request.form
-    try:
-      seeking_venue = request.form['seeking_venue']
-      artist.seeking_venue = True
-    except:
-      artist.seeking_venue = False
+    artist.name = form.name.data
+    artist.city = form.city.data
+    artist.state = form.state.data
+    artist.phone = form.phone.data
+    artist.genres = form.genres.data
+    artist.facebook_link = form.facebook_link.data
+    artist.image_link = form.image_link.data
+    artist.website_link = form.website_link.data
+    artist.seeking_venue = form.seeking_venue.data
+    artist.seeking_description = form.seeking_description.data
 
     db.session.commit()
     return redirect(url_for('show_artist', artist_id=artist_id))
@@ -248,24 +246,19 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
+  form = VenueForm(request.form)
   venue = Venue.query.filter_by(id=venue_id).first()
-  venue.name = request.form['name']
-  venue.city = request.form['city']
-  venue.state = request.form['state']
-  venue.address = request.form['address']
-  venue.phone = request.form['phone']
-  venue.genres = request.form.getlist('genres')
-  venue.facebook_link = request.form['facebook_link']
-  venue.image_link = request.form['image_link']
-  venue.website_link = request.form['website_link']
-  venue.seeking_description = request.form['seeking_description']
-
-  # If seeking talent not selected in the form, it wont show up in the request.form
-  try:
-    seeking_talent = request.form['seeking_talent']
-    venue.seeking_talent = True
-  except:
-    venue.seeking_talent = False
+  venue.name = form.name.data
+  venue.city = form.city.data
+  venue.state = form.state.data
+  venue.address = form.address.data
+  venue.phone = form.phone.data
+  venue.genres = form.genres.data
+  venue.facebook_link = form.facebook_link.data
+  venue.image_link = form.image_link.data
+  venue.website_link = form.website_link.data
+  venue.seeking_talent = form.seeking_talent.data
+  venue.seeking_description = form.seeking_description.data
 
   db.session.add(venue)
   db.session.commit()
@@ -318,11 +311,11 @@ def shows():
     shows = Show.query.all()
     for show in shows:
         data.append({
-          "venue_id": show.Venue.id,
-          "venue_name": show.Venue.name,
-          "artist_id": show.Artist.id,
-          "artist_name": show.Artist.name,
-          "artist_image_link": show.Artist.image_link,
+          "venue_id": show.venue_id,
+          "venue_name": db.session.query(Venue).select_from(Show).join(Venue, Venue.id == Show.venue_id).filter(Venue.id == Show.venue_id).first().name,
+          "artist_id": show.artist_id,
+          "artist_name": Artist.query.filter(Artist.id == show.artist_id).first().name,
+          "artist_image_link": Artist.query.filter(Artist.id == show.artist_id).first().image_link,
           "start_time": str(show.start_time)
         })
         
