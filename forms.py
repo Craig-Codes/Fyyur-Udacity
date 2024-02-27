@@ -82,7 +82,6 @@ class VenueForm(Form):
     address = StringField(
         'address', validators=[DataRequired()]
     )
-        # TODO implement validation logic for phone 
     phone = StringField(
         'phone',
         validators=[DataRequired(), Regexp(r'^[0-9\-\+]+$')]
@@ -194,7 +193,6 @@ class ArtistForm(Form):
             ('WY', 'WY'),
         ]
     )
-        # TODO implement validation logic for phone 
     phone = StringField(
         'phone',
         # only allow -/+/numbers
